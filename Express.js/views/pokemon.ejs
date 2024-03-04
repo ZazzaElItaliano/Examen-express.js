@@ -1,0 +1,157 @@
+<%- include("template/header", {tituloWeb: 'Panel de Admin'}) %>
+
+
+<div class="container text-center ">
+  <h1 class="mt-4 mb-4">Lista de juegos</h1>
+  
+  <table class="table">
+    <thead>
+      <tr>
+          <th scope="col">Id</th>
+          <th scope="col">Nombre</th>
+          <th scope="col">Descripción</th>
+          <th scope="col">Precio</th>
+          <th scope="col">Imagen</th>
+          <th>Acciones</th>
+      </tr>
+  </thead>
+  <tbody>
+    <% if (arrayPokemon.length > 0) { %>
+     <% arrayPokemon.forEach(pokemon => { %>
+        <tr>
+            <th scope="row"><%= pokemon.id %></th>
+            <td><%= pokemon.nombre %></td>
+            <td><%= pokemon.descripcion %></td>
+            <td><%= pokemon.precio %></td>
+            <td class="w-25"><img src="<%=pokemon.img%>" alt="<%=pokemon.name%>"class="w-25"></td>
+            <td><a href="#editarModal<%=pokemon._id%>" class="btn btn-warning btn-sm editar-btn" data-toggle="modal" data-target="#editarModal<%=pokemon._id%>"><i class="fas fa-edit"></i></a>
+              <button id="eliminar" class="btn btn-danger btn-sm eliminar-btn" data-id="<%= pokemon._id %>" onclick="confirmDelete('<%= pokemon._id %>')"><i class="far fa-trash-alt"></i></button></td>
+          </tr>
+     <%})%>
+    <%}%>
+    </tbody>
+  </table>
+</div>
+
+<% if (arrayPokemon.length > 0) { %>
+  <% arrayPokemon.forEach(pokemon => { %>
+      <div class="modal fade" id="editarModal<%=pokemon._id%>" tabindex="-1" role="dialog" aria-labelledby="editarModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h5 class="modal-title" id="editarModalLabel">Editar videojuego</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                  </div>
+                  <div class="modal-body">
+                    <form id="editar" class="editar" data-id="<%=pokemon._id%>"  enctype="multipart/form-data">
+                      
+                        <input type="number" value="<%=pokemon.id%>" class="form-control my-2" name="id" id="id">
+                        <input type="text" value="<%=pokemon.nombre%>" class="form-control my-2" name="nombre" id="nombre">
+                        <input type="text" value="<%=pokemon.descripcion%>" class="form-control my-2" name="descripcion" id="descripcion">
+                        <input type="text" value="<%=pokemon.precio%>" class="form-control my-2" id="precio" name="precio">
+                      
+                      <button class="btn btn-primary btn-sm" type="submit" onclick="return confirm('¿Quieres guardar los cambios?')">Actualizar</button>
+                      
+                     
+                    </form>
+                  </div>
+              </div>
+          </div>
+      </div>
+  <% }) %>
+<% } %>
+
+<div class="modal fade" id="crearModal" tabindex="-1" role="dialog" aria-labelledby="crearModalLabel" aria-hidden="true"></div>
+<div class="modal-dialog" role="document">
+  <div class="modal-content">
+    <div class="modal-header">
+
+      <h5 class="modal-title" id="crearModalLabel">Añadir videojuego</h5>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+
+  </div>
+  <div class="modal-body">
+    <form action="/pokemon" class="my-2" method="POST">
+      <input type="number" placeholder="Id" class="form-control my-2" name="id">
+      <input type="text" placeholder="Nombre" class="form-control my-2" name="nombre">
+      <input type="text" placeholder="Descripcion" class="form-control my-2" name="descripcion">
+      <input type="number" placeholder="Precio" class="form-control my-2" name="precio">
+      <button type="submit" class="btn btn-dark btn-block" onclick="return confirm('¿Quieres crear este videojuego?')">
+        Agregar
+    </button>
+  </form>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+  body{
+    background-color: rgb(170, 185, 185);
+  }
+</style>
+<%-include("template/footer")%>
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+  
+      const eliminarButtons = document.querySelectorAll('.eliminar-btn');
+      eliminarButtons.forEach(btnEliminar => {
+          btnEliminar.addEventListener('click', async () => {
+              const confirmResult = confirm('¿Quieres eliminar el videojuego?');
+  
+              if (confirmResult) {
+                  try{
+                      const data=await fetch(`/pokemon/${btnEliminar.dataset.id}`,{
+                          method:'delete'
+                      })
+                      const res= await data.json()
+                      console.log(res)
+                      if(res.estado){
+                          window.location.href='/pokemon'
+                      }else{
+                          console.log(res)
+                      }
+                  }catch(error){
+                      console.log(error)
+                  }
+              }
+          })
+      })
+  
+      const formularios = document.querySelectorAll(".editar");
+      formularios .forEach(formEditar =>{
+
+      
+    formEditar.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const id = formEditar.elements["id"].value
+      const nombre = formEditar.elements["nombre"].value
+      const descripcion = formEditar.elements["descripcion"].value
+      const precio = formEditar.elements["precio"].value
+      const _id = formEditar.dataset.id
+      const data = await fetch(`/pokemon/${_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ id, nombre, descripcion, precio })
+      })
+      const res = await data.json()
+      if (res.estado) {
+        window.location.href = "/pokemon"
+      } else {
+        console.log(res)
+      }
+    })
+  })
+  });
+  </script>
+
+
+
